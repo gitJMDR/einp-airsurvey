@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "Air Survey",
+    "slug": "airsurvey",
+    "version": "0.1.0",
+    "orientation": "landscape",
+    "icon": "./assets/flying-beaver-logo.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.einp.airsurvey",
+      "adaptiveIcon": {
+        "backgroundColor": "#111418",
+        "foregroundImage": "./assets/flying-beaver-logo.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/flying-beaver-logo.png"
+    },
+    "plugins": [
+      "expo-sqlite",
+      "expo-sharing",
+      "@maplibre/maplibre-react-native"
+    ]
+  }
+}
