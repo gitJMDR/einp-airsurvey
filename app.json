@@ -24,6 +24,12 @@
       "expo-sqlite",
       "expo-sharing",
       "@maplibre/maplibre-react-native"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "361c2305-3231-43c4-911f-7572faddfdcc"
+      }
+    },
+    "owner": "jonathandemoor"
   }
 }
