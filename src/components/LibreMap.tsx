@@ -1,13 +1,24 @@
 // Full MapLibre map for the development-build APK (MapLibre cannot run
 // inside Expo Go — this module is only required outside it). Style URL is a
 // placeholder until the offline imagery pack (MBTiles) is built.
+//
+// Written against @maplibre/maplibre-react-native v11's API: named exports
+// (Map/Camera/GeoJSONSource/Layer), `mapStyle`/`data`/`center` props, and
+// style-spec layers with `type` + kebab-case `paint`. The v10-era
+// `MapLibreGL.MapView`/`ShapeSource`/`LineLayer` names don't exist in v11 —
+// rendering them was the launch crash of build 2e0f1071 (undefined element
+// types). Keep this file aligned with the installed major version.
 import React from "react";
 import { StyleSheet } from "react-native";
+import {
+  Camera,
+  GeoJSONSource,
+  Layer,
+  Map,
+  UserLocation,
+} from "@maplibre/maplibre-react-native";
 import { COLORS } from "../theme";
 import type { GpsFix, TrackPoint, WaypointRecord } from "../types";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const MapLibreGL = require("@maplibre/maplibre-react-native") as any;
 
 const STYLE_URL = "https://demotiles.maplibre.org/style.json"; // placeholder — offline pack replaces this
 
@@ -20,8 +31,12 @@ interface Props {
 
 export default function LibreMap({ fix, track, waypoints, transects }: Props) {
   const lineString = (coords: { latitude: number; longitude: number }[]) => ({
-    type: "Feature",
-    geometry: { type: "LineString", coordinates: coords.map((c) => [c.longitude, c.latitude]) },
+    type: "Feature" as const,
+    geometry: {
+      type: "LineString" as const,
+      coordinates: coords.map((c): [number, number] => [c.longitude, c.latitude]),
+    },
+    properties: null,
   });
 
   // split the track into same-colour runs with shared boundary points
@@ -40,48 +55,63 @@ export default function LibreMap({ fix, track, waypoints, transects }: Props) {
   );
 
   return (
-    <MapLibreGL.MapView style={StyleSheet.absoluteFill} styleURL={STYLE_URL} compassEnabled>
-      <MapLibreGL.Camera
-        centerCoordinate={fix ? [fix.longitude, fix.latitude] : [-112.87, 53.6]}
-        zoomLevel={11}
-        animationDuration={500}
+    <Map mapStyle={STYLE_URL} compass style={StyleSheet.absoluteFill}>
+      <Camera
+        center={fix ? [fix.longitude, fix.latitude] : [-112.87, 53.6]}
+        zoom={11}
+        duration={500}
       />
-      <MapLibreGL.UserLocation showsUserHeadingIndicator />
+      <UserLocation heading />
       {transectFeatures.map((f, i) => (
-        <MapLibreGL.ShapeSource key={`tr-${i}`} id={`tr-src-${i}`} shape={f}>
-          <MapLibreGL.LineLayer id={`tr-line-${i}`} style={{ lineColor: "#4da3ff", lineWidth: 1.5, lineOpacity: 0.8 }} />
-        </MapLibreGL.ShapeSource>
+        <GeoJSONSource key={`tr-${i}`} id={`tr-src-${i}`} data={f}>
+          <Layer
+            id={`tr-line-${i}`}
+            type="line"
+            paint={{ "line-color": "#4da3ff", "line-width": 1.5, "line-opacity": 0.8 }}
+          />
+        </GeoJSONSource>
       ))}
       {segments.map((s, i) => (
-        <MapLibreGL.ShapeSource key={`seg-${i}`} id={`seg-src-${i}`} shape={lineString(s.coords)}>
-          <MapLibreGL.LineLayer
+        <GeoJSONSource key={`seg-${i}`} id={`seg-src-${i}`} data={lineString(s.coords)}>
+          <Layer
             id={`seg-line-${i}`}
-            style={{ lineColor: s.leg ? COLORS.ok : COLORS.bad, lineWidth: 4 }}
+            type="line"
+            paint={{ "line-color": s.leg ? COLORS.ok : COLORS.bad, "line-width": 4 }}
           />
-        </MapLibreGL.ShapeSource>
+        </GeoJSONSource>
       ))}
       {waypoints.length > 0 && (
-        <MapLibreGL.ShapeSource
+        <GeoJSONSource
           id="wp-src"
-          shape={{
-            type: "FeatureCollection",
+          data={{
+            type: "FeatureCollection" as const,
             features: waypoints.map((w) => ({
-              type: "Feature",
-              geometry: { type: "Point", coordinates: [w.longitude, w.latitude] },
+              type: "Feature" as const,
+              geometry: {
+                type: "Point" as const,
+                coordinates: [w.longitude, w.latitude] as [number, number],
+              },
               properties: { number: w.number, species: w.species, total: w.total },
             })),
           }}
-          onPress={(e: { features: { properties: { number: number; species: string; total: number } }[] }) => {
-            const f = e.features?.[0];
-            if (f) console.log(`WP #${f.properties.number} ${f.properties.species} ×${f.properties.total}`);
+          onPress={(e) => {
+            const f = e.nativeEvent.features?.[0];
+            const p = f?.properties;
+            if (p) console.log(`WP #${p.number} ${p.species} ×${p.total}`);
           }}
         >
-          <MapLibreGL.CircleLayer
+          <Layer
             id="wp-circle"
-            style={{ circleRadius: 6, circleColor: "#ffd54a", circleStrokeColor: "#111418", circleStrokeWidth: 1 }}
+            type="circle"
+            paint={{
+              "circle-radius": 6,
+              "circle-color": "#ffd54a",
+              "circle-stroke-color": "#111418",
+              "circle-stroke-width": 1,
+            }}
           />
-        </MapLibreGL.ShapeSource>
+        </GeoJSONSource>
       )}
-    </MapLibreGL.MapView>
+    </Map>
   );
 }
