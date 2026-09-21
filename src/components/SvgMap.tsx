@@ -4,9 +4,9 @@
 // (heading-up is the default — the map rotates to match the view from the
 // aircraft). Imagery arrives with the MapLibre dev build — see LibreMap.tsx.
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Dimensions, PanResponder, Pressable, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Dimensions, PanResponder, StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, G, Polygon, Polyline as SvgPolyline, Rect, Text as SvgText } from "react-native-svg";
+import MapControls, { type Orientation } from "./MapControls";
 import { COLORS } from "../theme";
 import type { GpsFix, SpeciesDef, TrackPoint, WaypointRecord } from "../types";
 
@@ -25,7 +25,6 @@ interface Viewport {
   k: number; // pixels per degree of latitude (longitude scaled by cos)
 }
 
-type Orientation = "north" | "heading";
 const ZOOM_STEP = 1.6;
 
 /** rotate a screen vector by a degrees (SVG convention, y-down) */
@@ -39,7 +38,6 @@ export default function SvgMap({ fix, track, waypoints, transects, species, onWa
   const codeOf = (key: string) => species.find((s) => s.key === key)?.code ?? (key[0] ?? "?").toUpperCase();
   const W = Dimensions.get("window").width;
   const H = Dimensions.get("window").height;
-  const insets = useSafeAreaInsets();
 
   const [orientation, setOrientation] = useState<Orientation>("heading");
   // smoothed heading so the rotated map doesn't twitch on every GPS jitter
@@ -288,43 +286,17 @@ export default function SvgMap({ fix, track, waypoints, transects, species, onWa
         </Svg>
       </View>
 
-      <View style={[styles.buttonCol, { bottom: 24 + insets.bottom, right: 21 }]}>
-        <Pressable
-          style={[styles.modeButton, labelsOn && styles.modeOn]}
-          onPress={() => setLabelsOn((v) => !v)}
-          accessibilityLabel="Toggle waypoint labels"
-        >
-          <Text style={[styles.modeText, labelsOn && { color: COLORS.bg }]}>🏷</Text>
-        </Pressable>
-        <Pressable style={styles.zoomButton} onPress={() => zoomAt(W / 2, H / 2, viewRef.current.k * ZOOM_STEP)} accessibilityLabel="Zoom in">
-          <Text style={styles.zoomText}>+</Text>
-        </Pressable>
-        <Pressable style={styles.zoomButton} onPress={() => zoomAt(W / 2, H / 2, viewRef.current.k / ZOOM_STEP)} accessibilityLabel="Zoom out">
-          <Text style={styles.zoomText}>−</Text>
-        </Pressable>
-      </View>
-      <View style={[styles.buttonCol, { bottom: 24 + insets.bottom, right: 89 }]}>
-        <Pressable
-          style={[styles.modeButton, orientation === "north" && styles.modeOn]}
-          onPress={() => {
-            setOrientation("north");
-            recenter();
-          }}
-          accessibilityLabel="North up and re-centre"
-        >
-          <Text style={[styles.modeText, orientation === "north" && { color: COLORS.bg }]}>N↑</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.modeButton, orientation === "heading" && styles.modeOn]}
-          onPress={() => {
-            setOrientation("heading");
-            recenter();
-          }}
-          accessibilityLabel="Heading up and re-centre"
-        >
-          <Text style={[styles.modeText, orientation === "heading" && { color: COLORS.bg }]}>H↑</Text>
-        </Pressable>
-      </View>
+      <MapControls
+        labelsOn={labelsOn}
+        onToggleLabels={() => setLabelsOn((v) => !v)}
+        onZoomIn={() => zoomAt(W / 2, H / 2, viewRef.current.k * ZOOM_STEP)}
+        onZoomOut={() => zoomAt(W / 2, H / 2, viewRef.current.k / ZOOM_STEP)}
+        orientation={orientation}
+        onOrient={(o) => {
+          setOrientation(o);
+          recenter();
+        }}
+      />
 
       <View style={styles.banner} pointerEvents="none">
         <Text style={styles.bannerText}>schematic view — imagery arrives with the map build</Text>
@@ -335,31 +307,6 @@ export default function SvgMap({ fix, track, waypoints, transects, species, onWa
 
 const styles = StyleSheet.create({
   svg: { backgroundColor: "#0d1014" },
-  // zoom column centred on the rail axis (rail centre = W-50; buttons 58 wide)
-  buttonCol: { position: "absolute", gap: 10 },
-  zoomButton: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: "rgba(27,32,39,0.95)",
-    borderWidth: 1,
-    borderColor: COLORS.line,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  zoomText: { color: COLORS.text, fontSize: 28, fontWeight: "800", lineHeight: 30 },
-  modeButton: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: "rgba(27,32,39,0.95)",
-    borderWidth: 2,
-    borderColor: COLORS.line,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  modeOn: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
-  modeText: { color: COLORS.text, fontSize: 17, fontWeight: "900" },
   banner: { position: "absolute", bottom: 8, alignSelf: "center", backgroundColor: "rgba(17,20,24,0.7)", borderRadius: 6, paddingHorizontal: 10, paddingVertical: 3 },
   bannerText: { color: COLORS.muted, fontSize: 11 },
 });

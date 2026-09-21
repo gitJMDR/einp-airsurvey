@@ -3,33 +3,71 @@
 // placeholder until the offline imagery pack (MBTiles) is built.
 //
 // Written against @maplibre/maplibre-react-native v11's API: named exports
-// (Map/Camera/GeoJSONSource/Layer), `mapStyle`/`data`/`center` props, and
-// style-spec layers with `type` + kebab-case `paint`. The v10-era
-// `MapLibreGL.MapView`/`ShapeSource`/`LineLayer` names don't exist in v11 —
-// rendering them was the launch crash of build 2e0f1071 (undefined element
-// types). Keep this file aligned with the installed major version.
-import React from "react";
-import { StyleSheet } from "react-native";
+// (Map/Camera/GeoJSONSource/Layer), `mapStyle`/`data` props, and style-spec
+// layers with `type` + kebab-case `paint`. The v10-era `MapLibreGL.*` names
+// don't exist in v11 — rendering them was the launch crash of build 2e0f1071.
+//
+// Camera discipline (same lesson as SvgMap's gestures): the initial view is
+// frozen once and all later movement is imperative through cameraRef — a
+// live `center` prop would re-apply a stop on every GPS fix and fight the
+// user's finger. Heading-up mode uses trackUserLocation="course" (rotate to
+// direction of travel, matching the schematic's GPS-heading behaviour — the
+// device compass would be useless in a helicopter anyway).
+import React, { useRef, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import {
   Camera,
   GeoJSONSource,
   Layer,
   Map,
   UserLocation,
+  type CameraRef,
+  type InitialViewState,
+  type LngLatBounds,
 } from "@maplibre/maplibre-react-native";
+import MapControls, { type Orientation } from "./MapControls";
 import { COLORS } from "../theme";
-import type { GpsFix, TrackPoint, WaypointRecord } from "../types";
+import type { GpsFix, SpeciesDef, TrackPoint, WaypointRecord } from "../types";
 
 const STYLE_URL = "https://demotiles.maplibre.org/style.json"; // placeholder — offline pack replaces this
+// Must exist in the active style's glyphs; demotiles ships Open Sans Semibold.
+// Re-check when the offline imagery pack replaces the style.
+const LABEL_FONT = "Open Sans Semibold";
+const ZOOM_STEP = 1;
+const PARK_CENTER: [number, number] = [-112.87, 53.6];
 
 interface Props {
   fix: GpsFix | null;
   track: TrackPoint[];
   waypoints: WaypointRecord[];
   transects: { name: string; coords: [number, number][] }[];
+  species: SpeciesDef[];
+  onWaypointPress?: (w: WaypointRecord) => void;
 }
 
-export default function LibreMap({ fix, track, waypoints, transects }: Props) {
+export default function LibreMap({ fix, track, waypoints, transects, species, onWaypointPress }: Props) {
+  const codeOf = (key: string) => species.find((s) => s.key === key)?.code ?? (key[0] ?? "?").toUpperCase();
+
+  const [labelsOn, setLabelsOn] = useState(true);
+  const [orientation, setOrientation] = useState<Orientation>("heading");
+  const cameraRef = useRef<CameraRef>(null);
+  // live viewport, kept for the zoom buttons (zoom is relative to "now").
+  // Seeded with the initial zoom; refreshed by every camera change.
+  const viewRef = useRef<{ zoom: number; center?: [number, number] }>({ zoom: 11 });
+
+  // initial view, computed once: centred on the aircraft if there is a fix,
+  // otherwise fitted to the flight lines so the park opens visible.
+  const [initialView] = useState<InitialViewState>((): InitialViewState => {
+    if (fix) return { center: [fix.longitude, fix.latitude], zoom: 12 };
+    const lats = transects.flatMap((t) => t.coords.map((c) => c[0]));
+    const lons = transects.flatMap((t) => t.coords.map((c) => c[1]));
+    if (!lats.length) return { center: PARK_CENTER, zoom: 10 };
+    return {
+      // flat [west, south, east, north] per GeoJSON RFC
+      bounds: [Math.min(...lons), Math.min(...lats), Math.max(...lons), Math.max(...lats)] as LngLatBounds,
+    };
+  });
+
   const lineString = (coords: { latitude: number; longitude: number }[]) => ({
     type: "Feature" as const,
     geometry: {
@@ -54,14 +92,34 @@ export default function LibreMap({ fix, track, waypoints, transects }: Props) {
     lineString(t.coords.map(([lat, lon]) => ({ latitude: lat, longitude: lon })))
   );
 
+  /** North-up: drop course-follow and rotate level; re-centre like the schematic. */
+  const orient = (o: Orientation) => {
+    setOrientation(o);
+    if (o === "north") {
+      const center: [number, number] = fix ? [fix.longitude, fix.latitude] : viewRef.current.center ?? PARK_CENTER;
+      cameraRef.current?.easeTo({ center, bearing: 0, duration: 400 });
+    }
+    // heading-up needs no imperative call: trackUserLocation="course" follows
+    // and re-centres on the next GPS update.
+  };
+
   return (
-    <Map mapStyle={STYLE_URL} compass style={StyleSheet.absoluteFill}>
+    <View style={StyleSheet.absoluteFill}>
+      <Map
+        mapStyle={STYLE_URL}
+        compass={false} // our N↑/H↑ buttons own orientation; the built-in ornament would sit under the HUD
+        style={StyleSheet.absoluteFill}
+        onRegionDidChange={(e) => {
+          const { zoom, center } = e.nativeEvent;
+          viewRef.current = { zoom, center };
+        }}
+      >
       <Camera
-        center={fix ? [fix.longitude, fix.latitude] : [-112.87, 53.6]}
-        zoom={11}
-        duration={500}
+        ref={cameraRef}
+        initialViewState={initialView}
+        trackUserLocation={orientation === "heading" ? "course" : undefined}
       />
-      <UserLocation heading />
+      <UserLocation accuracy heading />
       {transectFeatures.map((f, i) => (
         <GeoJSONSource key={`tr-${i}`} id={`tr-src-${i}`} data={f}>
           <Layer
@@ -91,13 +149,19 @@ export default function LibreMap({ fix, track, waypoints, transects }: Props) {
                 type: "Point" as const,
                 coordinates: [w.longitude, w.latitude] as [number, number],
               },
-              properties: { number: w.number, species: w.species, total: w.total },
+              properties: {
+                number: w.number,
+                // grey for audio-only missed observations (9001+), yellow otherwise
+                pinColor: w.number >= 9001 ? "#8a94a3" : "#ffd54a",
+                label: `${w.number}-${codeOf(w.species)}${w.total}`,
+              },
             })),
           }}
           onPress={(e) => {
-            const f = e.nativeEvent.features?.[0];
-            const p = f?.properties;
-            if (p) console.log(`WP #${p.number} ${p.species} ×${p.total}`);
+            const p = e.nativeEvent.features?.[0]?.properties as { number?: number | string } | null | undefined;
+            if (p == null || !onWaypointPress) return;
+            const w = waypoints.find((x) => x.number === Number(p.number));
+            if (w) onWaypointPress(w);
           }}
         >
           <Layer
@@ -105,13 +169,41 @@ export default function LibreMap({ fix, track, waypoints, transects }: Props) {
             type="circle"
             paint={{
               "circle-radius": 6,
-              "circle-color": "#ffd54a",
+              "circle-color": ["get", "pinColor"],
               "circle-stroke-color": "#111418",
               "circle-stroke-width": 1,
             }}
           />
+          {labelsOn && (
+            <Layer
+              id="wp-label"
+              type="symbol"
+              layout={{
+                "text-field": ["get", "label"],
+                "text-font": [LABEL_FONT],
+                "text-size": 14,
+                "text-offset": [1.1, 0],
+                "text-anchor": "left",
+                "text-padding": 2,
+              }}
+              paint={{
+                "text-color": COLORS.text,
+                "text-halo-color": "rgba(17,20,24,0.85)",
+                "text-halo-width": 1.5,
+              }}
+            />
+          )}
         </GeoJSONSource>
       )}
-    </Map>
+      </Map>
+      <MapControls
+        labelsOn={labelsOn}
+        onToggleLabels={() => setLabelsOn((v) => !v)}
+        onZoomIn={() => cameraRef.current?.zoomTo(viewRef.current.zoom + ZOOM_STEP, { duration: 200 })}
+        onZoomOut={() => cameraRef.current?.zoomTo(viewRef.current.zoom - ZOOM_STEP, { duration: 200 })}
+        orientation={orientation}
+        onOrient={orient}
+      />
+    </View>
   );
 }
