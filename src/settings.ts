@@ -19,6 +19,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   species: DEFAULT_SPECIES,
   units: "metric",
   targets: DEFAULT_TARGETS,
+  mapType: "satellite",
 };
 
 const KEY = "app-settings";
@@ -32,6 +33,7 @@ export function loadAppSettings(): AppSettings {
       species: Array.isArray(parsed.species) && parsed.species.length ? parsed.species : DEFAULT_SPECIES,
       units: parsed.units === "aviation" ? "aviation" : "metric",
       targets: { ...DEFAULT_TARGETS, ...(parsed.targets ?? {}) },
+      mapType: parsed.mapType === "roads" ? "roads" : "satellite",
     };
   } catch {
     return DEFAULT_SETTINGS;

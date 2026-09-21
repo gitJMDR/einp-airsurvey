@@ -27,11 +27,11 @@ import {
 } from "@maplibre/maplibre-react-native";
 import MapControls, { type Orientation } from "./MapControls";
 import { COLORS } from "../theme";
-import type { GpsFix, SpeciesDef, TrackPoint, WaypointRecord } from "../types";
+import type { GpsFix, MapType, SpeciesDef, TrackPoint, WaypointRecord } from "../types";
 
-const STYLE_URL = "https://demotiles.maplibre.org/style.json"; // placeholder — offline pack replaces this
-// Must exist in the active style's glyphs; demotiles ships Open Sans Semibold.
-// Re-check when the offline imagery pack replaces the style.
+// Fallback while offline-maps.ts writes the on-device styles (first moments
+// after launch); the offline styles carry the same font name.
+const FALLBACK_STYLE_URL = "https://demotiles.maplibre.org/style.json";
 const LABEL_FONT = "Open Sans Semibold";
 const ZOOM_STEP = 1;
 const PARK_CENTER: [number, number] = [-112.87, 53.6];
@@ -43,9 +43,22 @@ interface Props {
   transects: { name: string; coords: [number, number][] }[];
   species: SpeciesDef[];
   onWaypointPress?: (w: WaypointRecord) => void;
+  mapStyleUrl?: string | null;
+  mapType?: MapType;
+  onToggleMapType?: () => void;
 }
 
-export default function LibreMap({ fix, track, waypoints, transects, species, onWaypointPress }: Props) {
+export default function LibreMap({
+  fix,
+  track,
+  waypoints,
+  transects,
+  species,
+  onWaypointPress,
+  mapStyleUrl,
+  mapType,
+  onToggleMapType,
+}: Props) {
   const codeOf = (key: string) => species.find((s) => s.key === key)?.code ?? (key[0] ?? "?").toUpperCase();
 
   const [labelsOn, setLabelsOn] = useState(true);
@@ -106,7 +119,7 @@ export default function LibreMap({ fix, track, waypoints, transects, species, on
   return (
     <View style={StyleSheet.absoluteFill}>
       <Map
-        mapStyle={STYLE_URL}
+        mapStyle={mapStyleUrl ?? FALLBACK_STYLE_URL}
         compass={false} // our N↑/H↑ buttons own orientation; the built-in ornament would sit under the HUD
         style={StyleSheet.absoluteFill}
         onRegionDidChange={(e) => {
@@ -203,6 +216,8 @@ export default function LibreMap({ fix, track, waypoints, transects, species, on
         onZoomOut={() => cameraRef.current?.zoomTo(viewRef.current.zoom - ZOOM_STEP, { duration: 200 })}
         orientation={orientation}
         onOrient={orient}
+        mapType={mapType}
+        onToggleMapType={onToggleMapType}
       />
     </View>
   );

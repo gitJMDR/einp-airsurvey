@@ -28,10 +28,11 @@ import {
   updateLeg,
 } from "./src/db";
 import { loadAppSettings, saveAppSettings, altLabel, displayAlt, displayAltTarget, displaySpeed, displaySpeedTarget, speedLabel } from "./src/settings";
+import { ensureMapAssets } from "./src/offline-maps";
 import { deleteWaypoint, updateWaypoint } from "./src/db";
 import { draftFromWaypoint } from "./src/types";
 import { COLORS } from "./src/theme";
-import type { AppSettings, GpsFix, LegRecord, SessionInfo, TrackPoint, WaypointRecord } from "./src/types";
+import type { AppSettings, GpsFix, LegRecord, MapType, SessionInfo, TrackPoint, WaypointRecord } from "./src/types";
 
 const FLIGHT_LINES = transectsJson as unknown as {
   transects: { name: string; coords: [number, number][] }[];
@@ -75,6 +76,7 @@ function AppInner() {
   const [screen, setScreen] = useState<Screen>("survey");
   const [fix, setFix] = useState<GpsFix | null>(null);
   const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [mapStyleUrls, setMapStyleUrls] = useState<Record<MapType, string> | null>(null);
   const [session, setSession] = useState<SessionInfo | null>(null);
   const [waypoints, setWaypoints] = useState<WaypointRecord[]>([]);
   const [legs, setLegs] = useState<LegRecord[]>([]);
@@ -173,6 +175,28 @@ function AppInner() {
     setSettings(loadAppSettings());
     bootSession();
   }, [bootSession]);
+
+  // Write the offline map styles + label font to Documents once, then keep
+  // the current style URL fed to the map (null → demotiles fallback).
+  useEffect(() => {
+    let alive = true;
+    ensureMapAssets()
+      .then((urls) => alive && setMapStyleUrls(urls))
+      .catch((e) => console.warn("[maps] style asset init failed:", e));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const mapType = settings?.mapType ?? "satellite";
+  const toggleMapType = useCallback(() => {
+    setSettings((prev) => {
+      if (!prev) return prev;
+      const next: AppSettings = { ...prev, mapType: prev.mapType === "satellite" ? "roads" : "satellite" };
+      saveAppSettings(next);
+      return next;
+    });
+  }, []);
 
   // Continuous GPS: the freshest fix is snapshotted when Mark is pressed,
   // and thinned points persist to the tracklog (~1 per 3 s).
@@ -277,6 +301,9 @@ function AppInner() {
         transects={FLIGHT_LINES.transects}
         species={settings.species}
         onWaypointPress={(w) => setEditWp(w)}
+        mapStyleUrl={mapStyleUrls ? mapStyleUrls[mapType] : null}
+        mapType={mapType}
+        onToggleMapType={toggleMapType}
       />
       {screen === "survey" && (
         <>

@@ -36,10 +36,14 @@ export interface Targets {
   altTolM: number;
 }
 
+/** Which basemap the MapLibre build shows (offline styles, see offline-maps.ts). */
+export type MapType = "satellite" | "roads";
+
 export interface AppSettings {
   species: SpeciesDef[];
   units: UnitsMode;
   targets: Targets;
+  mapType: MapType;
 }
 
 /** What the Mark pop-over collects before saving. */

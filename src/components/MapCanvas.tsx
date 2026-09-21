@@ -4,7 +4,7 @@
 import Constants from "expo-constants";
 import React from "react";
 import SvgMap from "./SvgMap";
-import type { GpsFix, SpeciesDef, TrackPoint, WaypointRecord } from "../types";
+import type { GpsFix, MapType, SpeciesDef, TrackPoint, WaypointRecord } from "../types";
 
 const IN_EXPO_GO = Constants.appOwnership === "expo";
 
@@ -20,6 +20,10 @@ interface Props {
   transects: { name: string; coords: [number, number][] }[];
   species: SpeciesDef[];
   onWaypointPress?: (w: WaypointRecord) => void;
+  /** basemap style URL (offline-maps.ts); null until assets are written */
+  mapStyleUrl?: string | null;
+  mapType?: MapType;
+  onToggleMapType?: () => void;
 }
 
 export default function MapCanvas(props: Props) {

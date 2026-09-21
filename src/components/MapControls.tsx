@@ -7,6 +7,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "../theme";
+import type { MapType } from "../types";
 
 export type Orientation = "north" | "heading";
 
@@ -17,13 +18,34 @@ interface Props {
   onZoomOut: () => void;
   orientation: Orientation;
   onOrient: (o: Orientation) => void;
+  /** Basemap switch — only provided by the real-map build (LibreMap). */
+  mapType?: MapType;
+  onToggleMapType?: () => void;
 }
 
-export default function MapControls({ labelsOn, onToggleLabels, onZoomIn, onZoomOut, orientation, onOrient }: Props) {
+export default function MapControls({
+  labelsOn,
+  onToggleLabels,
+  onZoomIn,
+  onZoomOut,
+  orientation,
+  onOrient,
+  mapType,
+  onToggleMapType,
+}: Props) {
   const insets = useSafeAreaInsets();
   return (
     <>
       <View style={[styles.buttonCol, { bottom: 24 + insets.bottom, right: 21 }]}>
+        {mapType != null && onToggleMapType != null && (
+          <Pressable
+            style={[styles.modeButton, styles.modeOn]}
+            onPress={onToggleMapType}
+            accessibilityLabel={mapType === "satellite" ? "Switch to road map" : "Switch to satellite imagery"}
+          >
+            <Text style={[styles.mapTypeText, { color: COLORS.bg }]}>{mapType === "satellite" ? "SAT" : "ROAD"}</Text>
+          </Pressable>
+        )}
         <Pressable
           style={[styles.modeButton, labelsOn && styles.modeOn]}
           onPress={onToggleLabels}
@@ -84,4 +106,5 @@ const styles = StyleSheet.create({
   },
   modeOn: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
   modeText: { color: COLORS.text, fontSize: 17, fontWeight: "900" },
+  mapTypeText: { color: COLORS.text, fontSize: 14, fontWeight: "900" },
 });

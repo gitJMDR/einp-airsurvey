@@ -1,6 +1,8 @@
-// Settings: species list (add/remove custom), display units, and survey
-// speed/altitude targets with tolerances (drives the HUD yellow/red states).
-import React, { useState } from "react";
+// Settings: species list (add/remove custom), display units, survey
+// speed/altitude targets with tolerances (drives the HUD yellow/red states),
+// and offline basemap pack downloads (builds only — Expo Go has no MapLibre).
+import Constants from "expo-constants";
+import React, { useCallback, useEffect, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import ScreenShell from "../components/ScreenShell";
 import { COLORS } from "../theme";
@@ -12,7 +14,8 @@ import {
   storedAlt,
   storedSpeed,
 } from "../settings";
-import type { AppSettings, SpeciesDef, UnitsMode } from "../types";
+import { MAP_DEFS, MAP_TYPES, deleteMapPack, downloadMapPack, listMapPacks, type MapPackInfo } from "../offline-maps";
+import type { AppSettings, MapType, SpeciesDef, UnitsMode } from "../types";
 
 export default function SettingsScreen({
   settings,
@@ -109,6 +112,7 @@ export default function SettingsScreen({
     onSave({
       species,
       units,
+      mapType: settings.mapType,
       targets: {
         speedKmh: storedSpeed(nums[0], units),
         speedTolKmh: storedSpeed(nums[1], units),
@@ -211,10 +215,97 @@ export default function SettingsScreen({
         Readouts stay green inside tolerance, yellow in the warning band just outside, red beyond.
       </Text>
 
+      {Constants.appOwnership !== "expo" && <OfflineMapsSection />}
+
       <Pressable style={styles.saveBtn} onPress={save}>
         <Text style={styles.saveBtnText}>Save settings</Text>
       </Pressable>
     </ScreenShell>
+  );
+}
+
+/** Basemap tile-pack downloads — MapLibre builds only. */
+function OfflineMapsSection() {
+  const [packs, setPacks] = useState<MapPackInfo[]>([]);
+  const [progress, setProgress] = useState<Partial<Record<MapType, number>>>({});
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(() => {
+    listMapPacks()
+      .then(setPacks)
+      .catch(() => {});
+  }, []);
+  useEffect(refresh, [refresh]);
+
+  const download = async (type: MapType) => {
+    setError(null);
+    setProgress((p) => ({ ...p, [type]: 0 }));
+    try {
+      // createPack resolves when the region is created; the download itself
+      // continues in the background and reports through onProgress.
+      await downloadMapPack(
+        type,
+        (pct) => {
+          if (pct >= 100) {
+            setProgress((p) => ({ ...p, [type]: undefined }));
+            refresh();
+          } else {
+            setProgress((p) => ({ ...p, [type]: pct }));
+          }
+        },
+        (msg) => {
+          setError(msg);
+          setProgress((p) => ({ ...p, [type]: undefined }));
+          refresh();
+        }
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+      setProgress((p) => ({ ...p, [type]: undefined }));
+    }
+  };
+
+  const remove = async (id: string) => {
+    try {
+      await deleteMapPack(id);
+    } catch {
+      // pack list refreshes regardless; a miss just means it was already gone
+    }
+    refresh();
+  };
+
+  return (
+    <>
+      <Text style={styles.section}>OFFLINE MAPS (download once on Wi-Fi)</Text>
+      {MAP_TYPES.map((t) => {
+        const def = MAP_DEFS[t];
+        const pack = packs.find((p) => p.type === t);
+        const pct = progress[t];
+        return (
+          <View key={t} style={styles.targetRow}>
+            <Text style={styles.targetLabel}>
+              {def.label} · {def.estSize}
+            </Text>
+            {pack ? (
+              <Pressable style={styles.addBtn} onPress={() => remove(pack.id)}>
+                <Text style={styles.addBtnText}>✓ Remove</Text>
+              </Pressable>
+            ) : pct != null ? (
+              <Text style={styles.targetLabel}>{pct.toFixed(0)}%</Text>
+            ) : (
+              <Pressable style={styles.addBtn} onPress={() => download(t)}>
+                <Text style={styles.addBtnText}>Download</Text>
+              </Pressable>
+            )}
+          </View>
+        );
+      })}
+      {error != null && <Text style={styles.hint}>{error}</Text>}
+      <Text style={styles.hint}>
+        Covers the flight-line area plus a margin. After downloading, the map (including waypoint labels) works with
+        no connection at all. Toggle satellite/roads with the SAT button on the map.
+      </Text>
+    </>
   );
 }
 
