@@ -8,6 +8,7 @@ import { Dimensions, PanResponder, StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, G, Polygon, Polyline as SvgPolyline, Rect, Text as SvgText } from "react-native-svg";
 import MapControls, { type Orientation } from "./MapControls";
 import { COLORS } from "../theme";
+import { kForFiveLines, numberedTransects } from "../transects";
 import type { GpsFix, SpeciesDef, TrackPoint, WaypointRecord } from "../types";
 
 interface Props {
@@ -248,16 +249,27 @@ export default function SvgMap({ fix, track, waypoints, transects, species, onWa
       <View style={StyleSheet.absoluteFill} {...gesture.panHandlers}>
         <Svg width={W} height={H} style={styles.svg} pointerEvents="none">
           <G transform={`rotate(${-hd}, ${W / 2}, ${H / 2})`}>
-            {transects.map((t) => (
-              <SvgPolyline
-                key={t.name}
-                points={t.coords.map(([lat, lon]) => `${xOf(lon)},${yOf(lat)}`).join(" ")}
-                stroke="#4da3ff"
-                strokeWidth={1}
-                fill="none"
-                opacity={0.7}
-              />
-            ))}
+            {numberedTransects(transects).map((t) => {
+              const mid = t.coords[Math.floor(t.coords.length / 2)];
+              const mx = xOf(mid[1]);
+              const my = yOf(mid[0]);
+              return (
+                <React.Fragment key={t.name}>
+                  <SvgPolyline
+                    points={t.coords.map(([lat, lon]) => `${xOf(lon)},${yOf(lat)}`).join(" ")}
+                    stroke="#4da3ff"
+                    strokeWidth={1}
+                    fill="none"
+                    opacity={0.7}
+                  />
+                  <G transform={`rotate(${hd}, ${mx}, ${my})`}>
+                    <SvgText x={mx} y={my - 4} fill="#9fd0ff" fontSize={13} fontWeight="bold" textAnchor="middle">
+                      {`#${t.number}`}
+                    </SvgText>
+                  </G>
+                </React.Fragment>
+              );
+            })}
             {segments.map((s, i) => (
               <SvgPolyline key={`seg-${i}`} points={s.points.join(" ")} stroke={s.leg ? COLORS.ok : COLORS.bad} strokeWidth={3} fill="none" />
             ))}
@@ -292,9 +304,10 @@ export default function SvgMap({ fix, track, waypoints, transects, species, onWa
         onZoomIn={() => zoomAt(W / 2, H / 2, viewRef.current.k * ZOOM_STEP)}
         onZoomOut={() => zoomAt(W / 2, H / 2, viewRef.current.k / ZOOM_STEP)}
         orientation={orientation}
-        onOrient={(o) => {
+        onOrient={(o, isDouble) => {
           setOrientation(o);
           recenter();
+          if (isDouble) zoomAt(W / 2, H / 2, kForFiveLines(transects));
         }}
       />
 

@@ -24,10 +24,6 @@ export const CONDITIONS_COLUMNS = [
   "LightIntensity", "PercCloudCover", "AvSnowDepth_cm", "HrsSinceSnow", "AmtLastSnow", "Notes",
 ] as const;
 
-// Hwy 16 corridor splits the park into North/South areas; sightings north of
-// this latitude belong to the North area. TO VERIFY with Jonathan (morning flag).
-const AREA_BOUNDARY_LAT = 53.567;
-
 function csvEscape(v: string | number | null | undefined): string {
   const s = v == null ? "" : String(v);
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
@@ -35,10 +31,6 @@ function csvEscape(v: string | number | null | undefined): string {
 
 function toCsv(columns: readonly string[], rows: (string | number | null)[][]): string {
   return [columns.join(","), ...rows.map((r) => r.map(csvEscape).join(","))].join("\r\n") + "\r\n";
-}
-
-function areaForLat(lat: number): string {
-  return lat >= AREA_BOUNDARY_LAT ? "North" : "South";
 }
 
 /** The leg whose time window contains the waypoint (or the nearest earlier leg). */
@@ -91,7 +83,10 @@ export function buildSightingsCsv(session: SessionInfo): string {
       pad2(t.hour),
       pad2(t.minute),
       pad2(t.second),
-      leg?.area ?? areaForLat(w.latitude),
+      // Area is a manual per-leg entry on the DATA screen (the north/south
+      // division follows the highway, not a latitude — Jonathan, 2026-09-22);
+      // blank exports as blank rather than guessing.
+      leg?.area ?? "",
       w.latitude,
       w.longitude,
       w.species,

@@ -13,7 +13,7 @@
 // user's finger. Heading-up mode uses trackUserLocation="course" (rotate to
 // direction of travel, matching the schematic's GPS-heading behaviour — the
 // device compass would be useless in a helicopter anyway).
-import React, { useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import {
   Camera,
@@ -23,10 +23,10 @@ import {
   UserLocation,
   type CameraRef,
   type InitialViewState,
-  type LngLatBounds,
 } from "@maplibre/maplibre-react-native";
 import MapControls, { type Orientation } from "./MapControls";
 import { COLORS } from "../theme";
+import { numberedTransects, transectCentroid, zoomForFiveLines } from "../transects";
 import type { GpsFix, MapType, SpeciesDef, TrackPoint, WaypointRecord } from "../types";
 
 // Fallback while offline-maps.ts writes the on-device styles (first moments
@@ -64,30 +64,34 @@ export default function LibreMap({
   const [labelsOn, setLabelsOn] = useState(true);
   const [orientation, setOrientation] = useState<Orientation>("heading");
   const cameraRef = useRef<CameraRef>(null);
+  // default zoom: five transect lines fill the screen (flown line + two each
+  // side) — also what a double-tapped N↑/H↑ resets to. Computed once.
+  const defaultZoom = useMemo(() => zoomForFiveLines(transects, fix?.latitude ?? 53.6), [transects, fix?.latitude]);
   // live viewport, kept for the zoom buttons (zoom is relative to "now").
-  // Seeded with the initial zoom; refreshed by every camera change.
-  const viewRef = useRef<{ zoom: number; center?: [number, number] }>({ zoom: 11 });
+  // Seeded with the default zoom; refreshed by every camera change.
+  const viewRef = useRef<{ zoom: number; center?: [number, number] }>({ zoom: defaultZoom });
 
-  // initial view, computed once: centred on the aircraft if there is a fix,
-  // otherwise fitted to the flight lines so the park opens visible.
+  // initial view, computed once: on the aircraft if there is a fix, else the
+  // middle of the transect block — always at the five-line default zoom.
   const [initialView] = useState<InitialViewState>((): InitialViewState => {
-    if (fix) return { center: [fix.longitude, fix.latitude], zoom: 12 };
-    const lats = transects.flatMap((t) => t.coords.map((c) => c[0]));
-    const lons = transects.flatMap((t) => t.coords.map((c) => c[1]));
-    if (!lats.length) return { center: PARK_CENTER, zoom: 10 };
+    const centroid = transectCentroid(transects);
     return {
-      // flat [west, south, east, north] per GeoJSON RFC
-      bounds: [Math.min(...lons), Math.min(...lats), Math.max(...lons), Math.max(...lats)] as LngLatBounds,
+      center: fix
+        ? [fix.longitude, fix.latitude]
+        : centroid
+          ? [centroid.lon, centroid.lat]
+          : PARK_CENTER,
+      zoom: defaultZoom,
     };
   });
 
-  const lineString = (coords: { latitude: number; longitude: number }[]) => ({
+  const lineString = (coords: { latitude: number; longitude: number }[], props?: Record<string, unknown>) => ({
     type: "Feature" as const,
     geometry: {
       type: "LineString" as const,
       coordinates: coords.map((c): [number, number] => [c.longitude, c.latitude]),
     },
-    properties: null,
+    properties: props ?? null,
   });
 
   // split the track into same-colour runs with shared boundary points
@@ -101,19 +105,25 @@ export default function LibreMap({
     } else last.coords.push(p);
   }
 
-  const transectFeatures = transects.map((t) =>
-    lineString(t.coords.map(([lat, lon]) => ({ latitude: lat, longitude: lon })))
+  // numbered north→south (#1 is northernmost) so labels survive any file order
+  const numbered = numberedTransects(transects);
+  const transectFeatures = numbered.map((t) =>
+    lineString(t.coords.map(([lat, lon]) => ({ latitude: lat, longitude: lon })), { name: `#${t.number}` })
   );
 
-  /** North-up: drop course-follow and rotate level; re-centre like the schematic. */
-  const orient = (o: Orientation) => {
+  /** North-up: drop course-follow and rotate level; re-centre like the schematic.
+   *  A double-tap also resets the zoom to the five-line default. */
+  const orient = (o: Orientation, isDouble: boolean) => {
     setOrientation(o);
+    const zoom = isDouble ? defaultZoom : viewRef.current.zoom;
     if (o === "north") {
       const center: [number, number] = fix ? [fix.longitude, fix.latitude] : viewRef.current.center ?? PARK_CENTER;
-      cameraRef.current?.easeTo({ center, bearing: 0, duration: 400 });
+      cameraRef.current?.easeTo({ center, zoom, bearing: 0, duration: 400 });
+    } else {
+      // heading-up: trackUserLocation="course" re-centres on the next GPS
+      // update; the zoom still needs an imperative nudge.
+      if (isDouble) cameraRef.current?.zoomTo(defaultZoom, { duration: 400 });
     }
-    // heading-up needs no imperative call: trackUserLocation="course" follows
-    // and re-centres on the next GPS update.
   };
 
   return (
@@ -139,6 +149,26 @@ export default function LibreMap({
             id={`tr-line-${i}`}
             type="line"
             paint={{ "line-color": "#4da3ff", "line-width": 1.5, "line-opacity": 0.8 }}
+          />
+          {/* labels repeat along the line so one is always in view while
+              flying it; MapLibre's collision detection drops overlapping
+              ones automatically when zoomed out */}
+          <Layer
+            id={`tr-label-${i}`}
+            type="symbol"
+            layout={{
+              "symbol-placement": "line",
+              "symbol-spacing": 260,
+              "text-field": ["get", "name"],
+              "text-font": [LABEL_FONT],
+              "text-size": 13,
+              "text-padding": 4,
+            }}
+            paint={{
+              "text-color": "#9fd0ff",
+              "text-halo-color": "rgba(13,16,20,0.85)",
+              "text-halo-width": 1.5,
+            }}
           />
         </GeoJSONSource>
       ))}
