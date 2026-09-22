@@ -54,24 +54,24 @@ export function transectGapDeg(ts: TransectLike[]): number {
   return gaps[Math.floor(gaps.length / 2)];
 }
 
-const EARTH_CIRCUMFERENCE_M = 40075016.7;
-
 /**
- * MapLibre zoom at which five transect gaps fill the screen height
- * (fractional; heading-up puts the lines across the screen).
+ * MapLibre zoom at which five transect lines fill the screen height (flown
+ * line + two either side, first and fifth near the edges ≈ 4.5 gaps).
+ * MapLibre: the world (360°) spans 512·2^z dp at the equator, and Mercator
+ * stretches degrees of latitude by sec(lat). (Build 0bf0207 shipped a wrong
+ * constant here — circumference where radius belonged, a 2π error — and
+ * opened ~16 lines instead of 5, measured on-device.)
  */
 export function zoomForFiveLines(ts: TransectLike[], lat: number): number {
   const h = Dimensions.get("window").height;
-  const gapM = (transectGapDeg(ts) * Math.PI * EARTH_CIRCUMFERENCE_M) / 180;
-  // world metres visible vertically = (h / 256) * circumference * cos(lat) / 2^z
-  const worldM = 5 * gapM;
-  return Math.log2(((h / 256) * EARTH_CIRCUMFERENCE_M * Math.cos((lat * Math.PI) / 180)) / worldM);
+  const gapDeg = transectGapDeg(ts);
+  return Math.log2((360 * h * Math.cos((lat * Math.PI) / 180)) / (4.5 * gapDeg * 512));
 }
 
 /** SvgMap scale (pixels per degree of latitude) for the same five-line view. */
 export function kForFiveLines(ts: TransectLike[]): number {
   const h = Dimensions.get("window").height;
-  return h / (5 * transectGapDeg(ts));
+  return h / (4.5 * transectGapDeg(ts));
 }
 
 /** Rough centre of the transect block, for the no-fix initial view. */
