@@ -12,5 +12,5 @@
 /tablet-*.png
 /quickcard-preview.png
 
-# Local build archive (APKs already covered by *.apk above)
-/versions/tablet-*.png
+# Local build archive — stays on this machine only
+/versions/
