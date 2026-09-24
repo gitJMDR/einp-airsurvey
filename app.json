@@ -12,7 +12,7 @@
     "android": {
       "package": "com.einp.airsurvey",
       "adaptiveIcon": {
-        "backgroundColor": "#111418",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/flying-beaver-foreground.png"
       },
       "predictiveBackGestureEnabled": false
