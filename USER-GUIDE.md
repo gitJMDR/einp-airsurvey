@@ -18,7 +18,9 @@ Three promises worth knowing about:
 
 ## Setup (one time per tablet)
 
-1. Install the app from the shared APK file (tap it, allow "install from unknown sources" if asked).
+1. Install the app — always the current version, no account needed:
+   **github.com/gitJMDR/airsurvey-releases/releases** → newest release → download the `.apk`, open it on the tablet, and allow "install unknown apps" if asked. (A shared APK file works too.)
+   **Updating an existing install: install right on top — never uninstall first** (uninstalling erases survey data that hasn't been exported).
 2. Connect the tablet to Wi-Fi.
 3. Open the app → **⚙ SETUP** → scroll to **OFFLINE MAPS**.
 4. Tap **Download** for *Satellite imagery* (~170 MB) and again for *Road map* (~40 MB). Progress shows as a percentage; each row shows **✓ Remove** when done. Do this on a decent connection — it's a one-time download per tablet covering the flight-line area plus a margin.
