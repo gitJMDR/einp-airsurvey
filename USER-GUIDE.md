@@ -19,7 +19,7 @@ Three promises worth knowing about:
 ## Setup (one time per tablet)
 
 1. Install the app — always the current version, no account needed:
-   **github.com/gitJMDR/airsurvey-releases/releases** → newest release → download the `.apk`, open it on the tablet, and allow "install unknown apps" if asked. (A shared APK file works too.)
+   **github.com/gitJMDR/einp-airsurvey/releases** → newest release → download the `.apk`, open it on the tablet, and allow "install unknown apps" if asked. (A shared APK file works too.)
    **Updating an existing install: install right on top — never uninstall first** (uninstalling erases survey data that hasn't been exported).
 2. Connect the tablet to Wi-Fi.
 3. Open the app → **⚙ SETUP** → scroll to **OFFLINE MAPS**.
