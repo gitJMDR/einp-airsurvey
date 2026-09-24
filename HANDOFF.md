@@ -19,7 +19,7 @@
 
 ## What exists (all verified working in Expo Go unless noted)
 
-- **Stack:** Expo SDK 57, React Native 0.86.3, TypeScript, in `app/` (a git repo — 2 commits; commit before builds, EAS requires clean-ish tree)
+- **Stack:** Expo SDK 57, React Native 0.86.3, TypeScript, in `app/`. The git repo root is the PROJECT folder (`C:\einp-airsurvey`), not `app/` — it covers code + docs, with all pre-restructure history preserved as renames. Remote: **private GitHub `gitJMDR/einp-airsurvey`** (origin/main). Excluded by `.gitignore` and local-only: `reference material/` (master workbooks, protocols — real survey data), all `*.apk` (also over GitHub's 100 MB file limit), scratch screenshots, `versions/tablet-*.png`. The `versions/` folder is Jonathan's local build archive. Commit before builds (EAS requires a clean-ish tree) and push to keep the cloud copy current
 - **Screens:** map (MARK flow, HUD, 2×2 rail: Σ TOTALS / ☰ REVIEW / ▦ DATA / ⚙ SETUP), Settings, Totals, Review & 9001+ missed obs, Data (metadata/legs/export/sessions)
 - **MarkModal** (one editor, three modes: mark/edit/missed): species buttons bottom-left, notes+chips top, count strip + keypad right. Interaction contract is settled and user-confirmed — see "Settled contracts" below
 - **Database:** SQLite (`app/src/db.ts`) — sessions, waypoints, tracklog (leg-tagged), legs, settings. Migrations are try/catch ALTERs
