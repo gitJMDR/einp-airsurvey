@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Air Survey — Cabin Quick Card</title>
+<style>
+  @page { size: letter landscape; margin: 0.3in; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 10.9in; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: #111;
+    background: #fff;
+  }
+  .page {
+    width: 10.9in; height: 7.9in;
+    display: flex; flex-direction: column;
+    border: 3px solid #111;
+    padding: 0.14in;
+  }
+  header {
+    display: flex; align-items: center; gap: 14px;
+    border-bottom: 3px solid #111; padding-bottom: 8px; margin-bottom: 10px;
+  }
+  header img { height: 0.75in; width: 0.75in; object-fit: contain; }
+  header h1 { font-size: 25pt; letter-spacing: 1px; }
+  header .sub { font-size: 11pt; color: #333; margin-left: auto; text-align: right; line-height: 1.3; }
+  .grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 10px;
+  }
+  .box { border: 2.5px solid #111; padding: 9px 11px; display: flex; flex-direction: column; }
+  .box h2 {
+    font-size: 13.5pt; letter-spacing: 0.5px; margin-bottom: 6px;
+    border-bottom: 2px solid #111; padding-bottom: 3px;
+  }
+  .box ul { list-style: none; font-size: 11pt; line-height: 1.42; }
+  .box li { padding-left: 14px; position: relative; margin-bottom: 3px; }
+  .box li::before { content: "▪"; position: absolute; left: 0; font-weight: bold; }
+  .big { font-weight: 800; }
+  .accent { color: #0b62c4; font-weight: 800; }
+  .steps li { counter-increment: step; padding-left: 22px; }
+  .steps li::before { content: counter(step) "."; font-weight: 800; position: absolute; left: 2px; }
+  .keypad {
+    display: grid; grid-template-columns: repeat(3, 0.62in); gap: 4px;
+    margin: 4px 0 6px;
+  }
+  .key {
+    border: 2px solid #111; text-align: center; font-weight: 800; font-size: 13pt;
+    padding: 3px 0; background: #f4f4f4;
+  }
+  .key.action { background: #111; color: #fff; font-size: 10.5pt; }
+  .btngrid { display: grid; grid-template-columns: 0.95in 0.95in; gap: 5px; margin: 4px 0 6px; }
+  .btnkey {
+    border: 2.5px solid #111; text-align: center; font-weight: 800; font-size: 12pt;
+    padding: 7px 0; background: #f4f4f4;
+  }
+  .btnkey.wide { font-size: 10.5pt; }
+  footer {
+    border-top: 2px solid #111; margin-top: 8px; padding-top: 5px;
+    display: flex; justify-content: space-between; font-size: 9.5pt; color: #333;
+  }
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <img src="app/assets/flying-beaver-logo.png" alt="Air Survey logo">
+    <h1>AIR SURVEY — CABIN QUICK CARD</h1>
+    <div class="sub">Tablet is locked landscape · screen stays awake<br>
+      Everything saves the instant you press SAVE<br>
+      Full detail: <b>USER-GUIDE.md</b></div>
+  </header>
+
+  <div class="grid">
+
+    <div class="box">
+      <h2>MARK A SIGHTING — 3 TAPS</h2>
+      <ul class="steps">
+        <li>Press <span class="big accent">MARK</span> → <span class="big">say the waypoint # aloud</span> (it shows big — audio cross-ref)</li>
+        <li>Tap the <span class="big">species</span> button</li>
+        <li>Tap the <span class="big">total</span> → <span class="big accent">SAVE</span></li>
+      </ul>
+      <ul>
+        <li>Classes called too? Tap Bulls / Cows / etc. — Total auto-fills</li>
+        <li>Chips: <span class="big">CIRCLED · PHOTOS · CAPTIVE · COLLARED</span> / <span class="big">CHECK · DUP? · NOT DUP</span> + free notes</li>
+        <li>Fix or delete later: <b>tap the pin on the map</b></li>
+      </ul>
+    </div>
+
+    <div class="box">
+      <h2>COUNTS — THE TOTAL RULE</h2>
+      <ul>
+        <li><span class="big">Total alone is fine</span> — type it, SAVE, done</li>
+        <li>Total <span class="big">typed by hand is authoritative</span> — classes never change it</li>
+        <li>Classes only → Total <span class="big">tracks their sum</span> (1 cow + 1 calf = Total 2)</li>
+        <li><span class="big">Unk = Total − classes</span> — always derived, never typed</li>
+        <li>Classes add up to more than Total → <span class="big accent">SAVE is blocked</span> until it adds up</li>
+        <li>Strip order: Bulls · Yearlings · Cows · Calves · Unk · Total</li>
+        <li>Templates stack: <span class="big">1B · 2B · 1C · C+C · C+2C · C+Y</span></li>
+      </ul>
+    </div>
+
+    <div class="box">
+      <h2>KEYPAD — NO BACKSPACE (by design)</h2>
+      <div class="keypad">
+        <div class="key">1</div><div class="key">2</div><div class="key">3</div>
+        <div class="key">4</div><div class="key">5</div><div class="key">6</div>
+        <div class="key">7</div><div class="key">8</div><div class="key">9</div>
+        <div class="key action">CANCEL</div><div class="key">0</div><div class="key action">SAVE</div>
+      </div>
+      <ul>
+        <li>Tap a cell → the <span class="big">next digit replaces</span> it</li>
+        <li><span class="big">Tap the selected cell again to empty it</span></li>
+        <li>CANCEL asks before discarding what you entered</li>
+      </ul>
+    </div>
+
+    <div class="box">
+      <h2>MAP BUTTONS — BOTTOM RIGHT</h2>
+      <div class="btngrid">
+        <div class="btnkey wide">SAT / ROAD</div>
+        <div class="btnkey wide">LABELS on/off</div>
+        <div class="btnkey">N↑</div>
+        <div class="btnkey">+</div>
+        <div class="btnkey">H↑</div>
+        <div class="btnkey">−</div>
+      </div>
+      <ul>
+        <li><span class="big">N↑</span> north-up · <span class="big">H↑</span> heading-up (rotates while moving)</li>
+        <li>Either one <span class="big">re-centres</span> on the aircraft</li>
+        <li><span class="big">Double-tap either = reset zoom</span> to the 5-line view</li>
+        <li>Track: <b>green = on leg · red = OFF SURVEY</b> (no leg running)</li>
+      </ul>
+    </div>
+
+    <div class="box">
+      <h2>LEGS &amp; CREW — DATA SCREEN</h2>
+      <ul>
+        <li>HUD shows <span class="big">LEG n · ON</span> while surveying</li>
+        <li>New crew, area, or conditions → <span class="big">STOP LEG</span>, add a leg, fill in crew + weather</li>
+        <li><span class="big">AREA (North/South) is manual</span> — the app never guesses it</li>
+        <li>Everything auto-saves as you type</li>
+      </ul>
+    </div>
+
+    <div class="box">
+      <h2>IF SOMETHING GOES WRONG</h2>
+      <ul>
+        <li>App killed / tablet dies → <span class="big">just reopen it</span> — everything saved is intact, track resumes</li>
+        <li>Buttons dimmed → survey is <b>closed</b> (read-only); start or load one from DATA</li>
+        <li>Missed something? Add it post-flight: <b>REVIEW → + missed obs</b> (9001+)</li>
+        <li><span class="big">Export before leaving the aircraft:</span> REVIEW → Export → save/send the ZIP</li>
+        <li>Paper is the fallback — switch any time, no shame</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <footer>
+    <div>Air Survey v0.1.1 · cabin quick reference · laminate for the flight bag</div>
+    <div>Export = sightings CSV + conditions CSV + tracklog GPX, all MST</div>
+  </footer>
+
+</div>
+</body>
+</html>

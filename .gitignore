@@ -1,42 +1,16 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# Reference material stays OFF the cloud by default: it contains the master
+# workbooks (50+ years of real survey data) and internal protocols.
+# Add explicitly if that's ever wanted.
+/reference material/
 
-# dependencies
-node_modules/
+# Built APKs are ~130 MB each — over GitHub's 100 MB file limit, and
+# retrievable from EAS anytime. Keep local copies, not repo copies.
+*.apk
 
-# Expo
-.expo/
-dist/
-web-build/
-expo-env.d.ts
+# Scratch verification screenshots from the debug loop
+/launcher-*.png
+/tablet-*.png
+/quickcard-preview.png
 
-# Native
-.kotlin/
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-
-# Metro
-.metro-health-check*
-
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# macOS
-.DS_Store
-*.pem
-
-# local env files
-.env*.local
-
-# typescript
-*.tsbuildinfo
-
-# generated native folders
-/ios
-/android
-_wb/
+# Local build archive (APKs already covered by *.apk above)
+/versions/tablet-*.png
