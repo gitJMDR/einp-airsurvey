@@ -591,8 +591,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.line,
     borderRadius: 8,
-    backgroundColor: COLORS.bg,
-    color: COLORS.text,
+    // white field, dark ink: an obvious tap target in bright sun (J 2026-09-24)
+    backgroundColor: "#ffffff",
+    color: COLORS.bg,
     fontSize: 16,
     padding: 8,
     textAlign: "center",
