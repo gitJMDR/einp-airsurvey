@@ -33,7 +33,10 @@ function toCsv(columns: readonly string[], rows: (string | number | null)[][]): 
   return [columns.join(","), ...rows.map((r) => r.map(csvEscape).join(","))].join("\r\n") + "\r\n";
 }
 
-/** The leg whose time window contains the waypoint (or the nearest earlier leg). */
+/** The leg whose time window contains the waypoint (or the nearest earlier
+ *  leg — the workbook's crew fill-down convention). Waypoints recorded
+ *  before the first leg started still get that first leg's crew; with no
+ *  legs at all there is nothing to fill from. */
 function legForTime(legs: LegRecord[], iso: string): LegRecord | null {
   const sorted = [...legs].sort((a, b) => (a.started_at ?? "").localeCompare(b.started_at ?? ""));
   let match: LegRecord | null = null;
@@ -41,7 +44,7 @@ function legForTime(legs: LegRecord[], iso: string): LegRecord | null {
     if (l.started_at && l.started_at <= iso) match = l;
     else break;
   }
-  return match;
+  return match ?? sorted[0] ?? null;
 }
 
 function commentsFor(w: WaypointRecord): string {
@@ -102,7 +105,7 @@ export function buildSightingsCsv(session: SessionInfo): string {
       leg?.navigator.name ?? "",
       leg?.observer1.name ?? "",
       leg?.observer2.name ?? "",
-      "", // Transcriber — the app replaces the transcription step; left for the workbook
+      "Recorded in app", // Transcriber — the app replaces the transcription step
       "", // QC — filled in during the workbook QC step, not by the app
     ];
   });

@@ -13,7 +13,7 @@
       "package": "com.einp.airsurvey",
       "adaptiveIcon": {
         "backgroundColor": "#111418",
-        "foregroundImage": "./assets/flying-beaver-logo.png"
+        "foregroundImage": "./assets/flying-beaver-foreground.png"
       },
       "predictiveBackGestureEnabled": false
     },
