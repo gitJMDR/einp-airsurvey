@@ -9,7 +9,7 @@
 ### One-time tablet setup (well before the survey)
 
 1. Install the Air Survey app from the shared APK.
-2. On Wi-Fi: app → ⚙ SETUP → OFFLINE MAPS → Download *Satellite imagery* (~170 MB) and *Road map* (~40 MB). One-time per tablet; after this no connection is needed in the field.
+2. On Wi-Fi: app → ⚙ SETUP → OFFLINE MAPS → Download *Satellite imagery* (~1 GB, high-resolution) and *Road map* (~50 MB). One-time per tablet; after this no connection is needed in the field. (Updating from an app version before 0.2.0? Remove and re-download each pack once.)
 3. In SETUP, confirm the species list, units (km/h · m or kt · ft), and target speed/altitude with tolerances.
 4. Verify the tablet obtains a GPS fix outdoors and that flight lines #1–#46 display on the map.
 
@@ -31,7 +31,7 @@
 
 13. ☰ REVIEW: scan the waypoint list against memory and the audio as time allows; add **missed observations** (9001+, position entered manually) for anything heard but not marked.
 14. ▦ DATA: complete leg end times (STOP LEG), temperature, light, cloud %, and notes for each leg; fields auto-save.
-15. ☰ REVIEW → **Export** → save or send the ZIP (sightings CSV + conditions CSV + tracklog GPX).
+15. ▦ DATA → **EXPORT · SAVE TO DEVICE** (or EXPORT · SHARE if a connection is available) → save the ZIP (sightings CSV + conditions CSV + tracklog GPX) to the agreed folder or share it. Works with no connection.
 
 ---
 

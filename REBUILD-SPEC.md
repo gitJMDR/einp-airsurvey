@@ -48,10 +48,10 @@ Cancelling a started entry asks for confirmation; editing reuses the same sheet 
 
 ## 4. Map
 
-- **[J] Offline satellite imagery and an offline road map**, downloaded once each on Wi-Fi (a SETUP-screen action with progress and remove), covering the flight-line area plus a ~2 km margin. No accounts or API keys; map credit carried on-screen. Everything else (flight lines, track, waypoints, labels) is local data and always works.
+- **[J] Offline satellite imagery and an offline road map**, downloaded once each on Wi-Fi (a SETUP-screen action with progress and remove), covering the flight-line area plus a ~5 km margin (the whole park, including road corridors). Satellite goes to zoom 17 (~1.2 m/px — one level deeper than the survey-flight default, so corridor imagery stays sharp when inspecting groups); road map to zoom 15; roughly 1 GB and 50 MB respectively. No accounts or API keys; map credit carried on-screen. Everything else (flight lines, track, waypoints, labels) is local data and always works.
 - **[J] A basemap toggle button on the map** (satellite ↔ road), remembered across restarts.
 - **[J] Flight lines drawn and labelled, numbered north→south from #1** (numbering computed from geometry, not file order; segments of the same physical line share a number). Labels repeat along each line so one is always in view while flying it, and declutter automatically (collision handling) when zoomed out.
-- **[J] Orientation buttons N↑ (north-up) and H↑ (heading-up)**; each press re-centres on the aircraft. Heading-up follows the direction of travel (GPS course, not device compass — compasses are useless in a helicopter) and therefore only rotates while moving. **[J] Double-tapping either button also resets the zoom to the default.**
+- **[J] Orientation buttons N↑ (north-up) and H↑ (heading-up).** EVERY tap of either button: sets that mode, re-centres on the aircraft, and engages follow mode — the position arrow holds steady at screen centre while the map scrolls beneath it. N↑ follows position with the bearing locked level; H↑ follows and rotates to the direction of travel (GPS course, not device compass — compasses are useless in a helicopter; it only rotates while moving). A manual pan/swipe ends follow mode (arrow moves, map stays) until the next tap re-engages it. **[J] Double-tapping either button additionally snaps the zoom to the default.** Snap-back animations are near-instant (~150 ms) — smooth glides read as lag in the cabin.
 - **[J] Default zoom = the five-line view**: the line being flown plus two either side, first and fifth near the screen edges (~5 line-gaps of world height; for 500 m spacing ≈ zoom 14 on a 800-unit screen).
 - **[J] Zoom +/− buttons and a waypoint-label show/hide toggle**, arranged with the above as a 2×3 grid: left column basemap/N↑/H↑, right column labels/+ /−.
 - Pinch-zoom and pan; waypoint pins (yellow, grey for 9001+) labelled `number-CODEtotal` (e.g. `14-E6`); **tapping a pin opens that waypoint in the editor**.
@@ -59,7 +59,7 @@ Cancelling a started entry asks for confirmation; editing reuses the same sheet 
 
 ## 5. Instruments (HUD)
 
-Top-of-screen: GPS quality chip (green < 10 m, yellow < 30 m, red beyond/none), leg status chip, and **[J] live ground-speed and altitude readouts with target values and tolerances set in SETUP — green inside tolerance, yellow in a warning band just outside, red beyond**. Units switchable (km/h·m ↔ kt·ft) without changing what a stored target means. The next waypoint number is always displayed.
+Top-of-screen: GPS quality chip (green < 10 m, yellow < 30 m, red beyond/none), leg status chip, and **[J] live ground-speed and altitude readouts with target values and tolerances set in SETUP — green inside tolerance, yellow in a warning band just outside, red beyond**. **[J] Outside tolerance, a correction arrow (↑ raise / ↓ lower) appears beside the value, coloured identically to it; inside tolerance there is no arrow.** Units switchable (km/h·m ↔ kt·ft) without changing what a stored target means. The next waypoint number is always displayed.
 
 ## 6. Flight metadata (per the survey conditions cover sheet)
 
@@ -71,11 +71,13 @@ Top-of-screen: GPS quality chip (green < 10 m, yellow < 30 m, red beyond/none), 
 
 ## 7. Review, totals, missed observations
 
-- **Review**: every waypoint with time, species, count, and flag icons; tap to edit/delete; the missed-observation add; export; and survey close.
+- **Review**: every waypoint with time, species, count, and flag icons; tap to edit/delete; the missed-observation add; and survey close.
 - **Totals**: running per-species animals + group counts, explicitly labelled provisional (a mid-flight sanity check, never the official number).
 - **Missed observations**: post-flight additions from the audio, numbered 9001+, manual position entry, full editor otherwise identical.
 
-## 8. Export (one tap, from Review or per past session)
+## 8. Export (from the DATA screen, or per past session)
+
+Two output paths produce the identical ZIP: **share** (OS share sheet — email/Drive/anything installed) and **[J] save-to-device** (system folder picker — Downloads, a USB stick, the park's folder — writing an ordinary file that's copyable off the tablet later with no connection at all; cancelling the picker is silent).
 
 A ZIP named `airsurvey_YYYY-MM-DD_HHMM_export.zip` containing:
 
@@ -90,7 +92,7 @@ Baked-in conventions:
 - **Times are MST (UTC−7), fixed, forever** — deliberately immune to any future daylight-time change; the known 1-hour skew vs civil-stamped audio/photos post-change is accepted and documented.
 - RecruitmentYear = calendar year of the previous June (Jun–Dec → this year; Jan–May → last year), computed. ManagementYear = "R-R+1", computed.
 - Species lowercase; Unknown derived; Distance/Movement/Transcriber/QC empty by design; crew columns filled from the leg covering the waypoint's time; Area from the leg's manual entry.
-- Export happens through the OS share sheet (save / email / copy).
+- Export output paths: OS share sheet, or save-to-device via the system folder picker (works offline).
 
 ## 9. Settings
 

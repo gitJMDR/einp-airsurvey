@@ -23,7 +23,7 @@ Three promises worth knowing about:
    **Updating an existing install: install right on top — never uninstall first** (uninstalling erases survey data that hasn't been exported).
 2. Connect the tablet to Wi-Fi.
 3. Open the app → **⚙ SETUP** → scroll to **OFFLINE MAPS**.
-4. Tap **Download** for *Satellite imagery* (~170 MB) and again for *Road map* (~40 MB). Progress shows as a percentage; each row shows **✓ Remove** when done. Do this on a decent connection — it's a one-time download per tablet covering the flight-line area plus a margin.
+4. Tap **Download** for *Satellite imagery* (~1 GB — the high-resolution zoom level that keeps corridor imagery sharp; give it time on a decent connection) and *Road map* (~50 MB). Progress shows as a percentage; each row shows **✓ Remove** when done. Coverage is the flight-line area plus a ~5 km margin — the whole park. **Updating from an older app version?** Remove and re-download each pack once so the bigger area and sharper imagery are included.
 5. While you're in SETUP, check the species list, units, and survey targets (see [SETUP screen](#setup-screen)).
 
 The app asks for location permission on first launch — allow it. The screen stays awake automatically during a survey; the display is locked to landscape.
@@ -40,7 +40,7 @@ This is home base. Everything happens over the map.
 |---|---|
 | **GPS chip** | Signal quality: green under 10 m accuracy, yellow under 30 m, red beyond or no fix ("GPS —"). |
 | **LEG chip** | `LEG 3 · ON` (green) when a survey leg is running, `OFF SURVEY` (grey) between legs. |
-| **SPD / ALT readouts** | Ground speed and altitude, coloured by your targets: green inside tolerance, yellow in the warning band, red outside. Targets are set in SETUP. |
+| **SPD / ALT readouts** | Ground speed and altitude, coloured by your targets: green inside tolerance, yellow in the warning band, red outside. **When outside tolerance an arrow shows which way to correct** — ↑ means increase, ↓ means decrease, in the same colour as the value. Targets are set in SETUP. |
 | **Next waypoint #** | The number the next MARK will get — also shown huge in the entry sheet, since it's the cross-reference for the audio recording and observers' notes. |
 
 ### The map itself
@@ -61,7 +61,8 @@ This is home base. Everything happens over the map.
 | **🏷** | Show/hide the waypoint labels. |
 | **+ / −** | Zoom in / out. |
 
-- **Double-tap N↑ or H↑** (two quick taps on the same button): re-orient, re-centre, **and** reset the zoom to the standard view — five flight lines filling the screen: the one you're on plus two either side.
+- **Every tap of N↑ or H↑** re-orients, re-centres on the aircraft, and engages follow mode: the arrow holds steady at the centre of the screen while the map scrolls beneath it. **Swipe the map yourself** and following pauses — the arrow moves, the map stays — until the next N↑/H↑ tap.
+- **Double-tap N↑ or H↑** (two quick taps on the same button): everything above **plus** the zoom snaps back to the standard view — five flight lines filling the screen: the one you're on plus two either side.
 - Pinch and drag work as usual.
 - **Tap a waypoint pin** to reopen and fix that sighting.
 
@@ -168,7 +169,7 @@ These get waypoint numbers from 9001 upward and draw as **grey pins**. They expo
 
 ## REVIEW (☰)
 
-The full list of waypoints with time, species, count, and flag icons (↻ circled, 📷 photographed, ⌂ captive, ◉ collared, ✓ check, ⧉ dup?, ≠ not dup). Tap any row to edit or delete it. This is also where **+ missed obs** and the **export** button live, and where you **close the survey** when it's truly done.
+The full list of waypoints with time, species, count, and flag icons (↻ circled, 📷 photographed, ⌂ captive, ◉ collared, ✓ check, ⧉ dup?, ≠ not dup). Tap any row to edit or delete it. This is also where **+ missed obs** lives, and where you **close the survey** when it's truly done. (Exporting is on the DATA screen — see below.)
 
 ## TOTALS (Σ)
 
@@ -178,13 +179,18 @@ Per species: animals counted and number of groups, for the current survey. Clear
 
 ## Exporting
 
-One button (**Export** on REVIEW, or per-session in *Manage past surveys*). The app builds a ZIP:
+Both buttons live on the **DATA screen's EXPORT section** (per-session export is also available in *Manage past surveys*):
+
+- **EXPORT · SHARE** opens Android's share sheet — email, Drive, anything installed.
+- **EXPORT · SAVE TO DEVICE** opens a folder picker (Downloads, a USB stick, the park's folder) and writes the ZIP there as an ordinary file. **Works with no connection at all** — copy it off the tablet later by USB cable or file manager, then email/upload it whenever you're back in coverage.
+
+Either way you get the same ZIP:
 
 - `airsurvey_DATE_TIME_sightings.csv` — one row per waypoint, the full UngulateSpatial column set
 - `airsurvey_DATE_TIME_conditions.csv` — one row per leg for SurveyConditions
 - `airsurvey_DATE_TIME_track.gpx` — waypoints + the full tracklog
 
-Android's share sheet opens — save it, email it, copy it to USB, whatever you'd do with a photo. From there the files go into the annual data folder and the workbooks per the data management protocol (see PROTOCOL-STEPS.md).
+From there the files go into the annual data folder and the workbooks per the data management protocol (see PROTOCOL-STEPS.md).
 
 **Conventions baked into the export** (you don't need to think about these):
 
