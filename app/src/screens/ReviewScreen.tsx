@@ -1,5 +1,5 @@
 // Post-flight review: every waypoint, editable; missed-observation (9001+)
-// additions from the audio; and the exports.
+// additions from the audio. Exports live on the DATA screen.
 import React, { useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import ScreenShell from "../components/ScreenShell";
@@ -51,7 +51,7 @@ export default function ReviewScreen({
   const gpsChip = lastFix ? `GPS ${lastFix.accuracy?.toFixed(0) ?? "?"} m` : "no GPS";
 
   return (
-    <ScreenShell title="Review & export" onBack={onBack}>
+    <ScreenShell title="Review" onBack={onBack}>
       <Text style={styles.meta}>
         {waypoints.length} waypoints recorded · tap any row to fix it
       </Text>
@@ -81,9 +81,6 @@ export default function ReviewScreen({
       >
         <Text style={styles.missedBtnText}>+ Add missed observation (9001+)</Text>
       </Pressable>
-
-      <Text style={styles.section}>EXPORT</Text>
-      <Text style={styles.hint}>Export now lives on the Data screen (▦ DATA from the map).</Text>
 
       <MarkModal
         visible={editor.mode === "edit"}
@@ -158,6 +155,4 @@ const styles = StyleSheet.create({
   missedBtnText: { color: COLORS.warn, fontSize: 16, fontWeight: "800" },
   section: { color: COLORS.muted, fontSize: 13, fontWeight: "800", letterSpacing: 1.5, marginTop: 12 },
   hint: { color: COLORS.muted, fontSize: 13, maxWidth: 560 },
-  exportBtn: { backgroundColor: COLORS.ok, borderRadius: 12, paddingVertical: 18, paddingHorizontal: 40, alignSelf: "flex-start" },
-  exportBtnText: { color: COLORS.bg, fontSize: 20, fontWeight: "900", letterSpacing: 1 },
 });

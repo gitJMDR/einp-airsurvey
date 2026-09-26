@@ -2,7 +2,7 @@
   "expo": {
     "name": "Air Survey",
     "slug": "airsurvey",
-    "version": "0.1.1",
+    "version": "0.2.0",
     "orientation": "landscape",
     "icon": "./assets/flying-beaver-logo.png",
     "userInterfaceStyle": "dark",

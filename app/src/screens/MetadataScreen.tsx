@@ -7,7 +7,7 @@ import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View 
 import ScreenShell from "../components/ScreenShell";
 import { COLORS } from "../theme";
 import { deleteLeg, deleteSession, getLegs, getSession, insertLeg, listSessions, updateLeg, updateSession, type SessionSummary } from "../db";
-import { shareAllExports } from "../export";
+import { saveAllExportsToDirectory, shareAllExports } from "../export";
 import { mstParts, pad2 } from "../time";
 import type { Experience, LegRecord, SessionInfo, WaypointRecord } from "../types";
 
@@ -167,6 +167,19 @@ export default function MetadataScreen({
       await shareAllExports(session);
     } catch (e) {
       Alert.alert("Export failed", e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  /** Save the ZIP into a folder of the user's choosing (Downloads, USB, the
+   *  park's folder) — works with zero connection; pick it up via USB/file
+   *  manager later. Cancelling the folder picker is silent. */
+  const doSaveExport = async () => {
+    try {
+      const name = await saveAllExportsToDirectory(session);
+      Alert.alert("Saved", `${name} is written to the folder you picked — copy it off the tablet any time, no connection needed.`);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (!/cancel/i.test(msg)) Alert.alert("Export failed", msg);
     }
   };
 
@@ -361,9 +374,14 @@ export default function MetadataScreen({
       <Text style={styles.hint}>
         One ZIP with the sightings CSV, conditions CSV, and GPX tracklog — workbook columns exact.
       </Text>
-      <Pressable style={styles.exportBtn} onPress={doExport}>
-        <Text style={styles.exportBtnText}>EXPORT ALL DATA</Text>
-      </Pressable>
+      <View style={styles.exportRow}>
+        <Pressable style={styles.exportBtn} onPress={doExport}>
+          <Text style={styles.exportBtnText}>EXPORT · SHARE</Text>
+        </Pressable>
+        <Pressable style={styles.exportSaveBtn} onPress={doSaveExport}>
+          <Text style={styles.exportSaveBtnText}>EXPORT · SAVE TO DEVICE</Text>
+        </Pressable>
+      </View>
 
       <Text style={styles.section}>NEW SURVEY</Text>
       <Pressable style={styles.newSurveyBtn} onPress={startNewSurvey}>
@@ -665,8 +683,11 @@ const styles = StyleSheet.create({
   },
   newSurveyBtnText: { color: COLORS.warn, fontSize: 16, fontWeight: "800" },
   hint: { color: COLORS.muted, fontSize: 13, maxWidth: 560 },
-  exportBtn: { backgroundColor: COLORS.ok, borderRadius: 12, paddingVertical: 18, paddingHorizontal: 40, alignSelf: "flex-start" },
-  exportBtnText: { color: COLORS.bg, fontSize: 20, fontWeight: "900", letterSpacing: 1 },
+  exportRow: { flexDirection: "row", gap: 10, alignItems: "center", flexWrap: "wrap" },
+  exportBtn: { backgroundColor: COLORS.ok, borderRadius: 12, paddingVertical: 16, paddingHorizontal: 22 },
+  exportBtnText: { color: COLORS.bg, fontSize: 15, fontWeight: "900", letterSpacing: 0.5 },
+  exportSaveBtn: { backgroundColor: COLORS.accent, borderRadius: 12, paddingVertical: 16, paddingHorizontal: 22 },
+  exportSaveBtnText: { color: COLORS.bg, fontSize: 15, fontWeight: "900", letterSpacing: 0.5 },
   loadedLine: { color: COLORS.muted, fontSize: 13 },
   pastBtn: {
     alignSelf: "flex-start",

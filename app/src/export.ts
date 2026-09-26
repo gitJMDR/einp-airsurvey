@@ -1,7 +1,7 @@
 // Exports. Column names and order are taken verbatim from the master
 // workbook (scripts/parse-workbook-headers.mjs) so files load into the
 // UngulateSpatial and SurveyConditions sheets with zero reformatting.
-import { File, Paths } from "expo-file-system";
+import { Directory, File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import JSZip from "jszip";
 import { getLegs, getTracklog, getWaypoints } from "./db";
@@ -202,18 +202,34 @@ export async function shareExport(content: string, fileName: string, mimeType: s
   await Sharing.shareAsync(file.uri, { mimeType, dialogTitle: `Export ${fileName}` });
 }
 
-/** One-tap export: sightings CSV + conditions CSV + GPX track, zipped. */
-export async function shareAllExports(session: SessionInfo): Promise<void> {
+/** Build the export ZIP (sightings CSV + conditions CSV + GPX tracklog). */
+async function buildExportZip(session: SessionInfo): Promise<{ base64: string; fileName: string }> {
   const zip = new JSZip();
   zip.file(exportFileName(session, "sightings", "csv"), buildSightingsCsv(session));
   zip.file(exportFileName(session, "conditions", "csv"), buildConditionsCsv(session));
   zip.file(exportFileName(session, "track", "gpx"), buildGpx(session));
-  const base64 = await zip.generateAsync({ type: "base64" });
-  const fileName = exportFileName(session, "export", "zip");
+  return { base64: await zip.generateAsync({ type: "base64" }), fileName: exportFileName(session, "export", "zip") };
+}
+
+/** Export via the share sheet (email / Drive / anything installed). */
+export async function shareAllExports(session: SessionInfo): Promise<void> {
+  const { base64, fileName } = await buildExportZip(session);
   const file = new File(Paths.cache, fileName);
   if (file.exists) file.delete();
   file.create();
   file.write(base64, { encoding: "base64" });
   if (!Sharing.isAvailableAsync()) throw new Error("Sharing is not available on this device");
   await Sharing.shareAsync(file.uri, { mimeType: "application/zip", dialogTitle: `Export ${fileName}` });
+}
+
+/** Export into a folder the user picks with the system picker (Downloads, a
+ *  USB device, the park's folder) — needs no connection at all; the file is
+ *  an ordinary document copyable off the tablet afterwards. Returns the file
+ *  name written. Rejects if the picker is cancelled. */
+export async function saveAllExportsToDirectory(session: SessionInfo): Promise<string> {
+  const { base64, fileName } = await buildExportZip(session);
+  const dir = await Directory.pickDirectoryAsync();
+  const file = new File(dir, fileName);
+  file.write(base64, { encoding: "base64" });
+  return fileName;
 }

@@ -35,11 +35,14 @@ const esriTiles = (service: string) =>
 export const MAP_DEFS: Record<MapType, MapDef> = {
   satellite: {
     label: "Satellite imagery",
+    // z17 ≈ 1.2 m/px at park latitude — the extra level beyond z16 is what
+    // makes corridors that looked soft on the ground (e.g. along the parkway)
+    // render sharp. Costs ~4× the z16-only download.
     minZoom: 11,
-    maxZoom: 16,
+    maxZoom: 17,
     tiles: esriTiles("World_Imagery"),
     attribution: "Esri, Maxar, Earthstar Geographics, and the GIS User Community",
-    estSize: "~170 MB",
+    estSize: "~1 GB",
   },
   roads: {
     label: "Road map",
@@ -47,7 +50,7 @@ export const MAP_DEFS: Record<MapType, MapDef> = {
     maxZoom: 15,
     tiles: esriTiles("World_Street_Map"),
     attribution: "Esri, HERE, Garmin, USGS, NPS",
-    estSize: "~40 MB",
+    estSize: "~50 MB",
   },
 };
 
@@ -110,7 +113,7 @@ export function surveyBounds(): [number, number, number, number] {
   const transects = (transectsJson as unknown as { transects: { coords: [number, number][] }[] }).transects;
   const lats = transects.flatMap((t) => t.coords.map((c) => c[0]));
   const lons = transects.flatMap((t) => t.coords.map((c) => c[1]));
-  const pad = 0.025; // ~2 km margin around the flight lines
+  const pad = 0.05; // ~5 km margin — covers the whole park incl. road corridors, not just the lines
   return [
     Math.min(...lons) - pad,
     Math.min(...lats) - pad,

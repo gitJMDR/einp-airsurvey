@@ -63,6 +63,14 @@ export default function LibreMap({
 
   const [labelsOn, setLabelsOn] = useState(true);
   const [orientation, setOrientation] = useState<Orientation>("heading");
+  // follow mode feeding Camera.trackUserLocation: "course" (H↑) or "default"
+  // (N↑) keeps the arrow pinned at screen centre with the map scrolling
+  // beneath it; a manual pan sets it undefined (arrow moves, map stays) until
+  // the next N↑/H↑ tap re-engages. "default" follows position without
+  // rotating — north stays up.
+  const [tracking, setTracking] = useState<"default" | "course" | undefined>("course");
+  const trackingRef = useRef(tracking);
+  trackingRef.current = tracking;
   const cameraRef = useRef<CameraRef>(null);
   // default zoom: five transect lines fill the screen (flown line + two each
   // side) — also what a double-tapped N↑/H↑ resets to. Computed once.
@@ -111,19 +119,23 @@ export default function LibreMap({
     lineString(t.coords.map(([lat, lon]) => ({ latitude: lat, longitude: lon })), { name: `#${t.number}` })
   );
 
-  /** North-up: drop course-follow and rotate level; re-centre like the schematic.
-   *  A double-tap also resets the zoom to the five-line default. */
+  /** EVERY N↑/H↑ tap: set the mode, re-centre, and (re-)engage follow — the
+   *  arrow pins to screen centre and the map scrolls beneath it. A double-tap
+   *  also snaps the zoom back to the five-line default. Snap-back animations
+   *  are kept near-instant; a smooth glide reads as lag in the cabin. */
   const orient = (o: Orientation, isDouble: boolean) => {
     setOrientation(o);
-    const zoom = isDouble ? defaultZoom : viewRef.current.zoom;
+    const mode: "default" | "course" = o === "heading" ? "course" : "default";
+    // drop, then re-apply: the prop needs a fresh value for the native camera
+    // mode to re-engage and re-centre (a same-value prop is a no-op)
+    setTracking(undefined);
+    window.setTimeout(() => setTracking(mode), 60);
     if (o === "north") {
+      // "default" follows position but never levels the bearing itself
       const center: [number, number] = fix ? [fix.longitude, fix.latitude] : viewRef.current.center ?? PARK_CENTER;
-      cameraRef.current?.easeTo({ center, zoom, bearing: 0, duration: 400 });
-    } else {
-      // heading-up: trackUserLocation="course" re-centres on the next GPS
-      // update; the zoom still needs an imperative nudge.
-      if (isDouble) cameraRef.current?.zoomTo(defaultZoom, { duration: 400 });
+      cameraRef.current?.easeTo({ center, bearing: 0, duration: 150 });
     }
+    if (isDouble) window.setTimeout(() => cameraRef.current?.zoomTo(defaultZoom, { duration: 150 }), 130);
   };
 
   return (
@@ -133,15 +145,20 @@ export default function LibreMap({
         compass={false} // our N↑/H↑ buttons own orientation; the built-in ornament would sit under the HUD
         style={StyleSheet.absoluteFill}
         onRegionDidChange={(e) => {
-          const { zoom, center } = e.nativeEvent;
+          const { zoom, center, userInteraction } = e.nativeEvent;
+          const prev = viewRef.current.center;
           viewRef.current = { zoom, center };
+          // a deliberate pan away from the followed position ends follow
+          // mode — the arrow then moves while the map stays put, until N↑/H↑
+          // is tapped again. (Zoom gestures and our own camera calls keep
+          // the centre, so they never trip this.)
+          if (userInteraction && prev != null && trackingRef.current != null) {
+            const moved = Math.abs(center[0] - prev[0]) + Math.abs(center[1] - prev[1]);
+            if (moved > 0.0005) setTracking(undefined);
+          }
         }}
       >
-      <Camera
-        ref={cameraRef}
-        initialViewState={initialView}
-        trackUserLocation={orientation === "heading" ? "course" : undefined}
-      />
+      <Camera ref={cameraRef} initialViewState={initialView} trackUserLocation={tracking} />
       <UserLocation accuracy heading />
       {transectFeatures.map((f, i) => (
         <GeoJSONSource key={`tr-${i}`} id={`tr-src-${i}`} data={f}>

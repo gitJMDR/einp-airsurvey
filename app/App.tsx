@@ -54,6 +54,13 @@ function tolColor(value: number | null, target: number, tol: number): string {
   return d <= tol ? COLORS.ok : d <= tol * 2 ? COLORS.warn : COLORS.bad;
 }
 
+/** Which way to correct: ↑ when below the target band, ↓ when above, blank
+ *  while inside tolerance (green = nothing to fix). */
+function tolArrow(value: number | null, target: number, tol: number): string {
+  if (value == null || Math.abs(value - target) <= tol) return "";
+  return value < target ? "↑" : "↓";
+}
+
 // Leg auto-prompting: sustained speeds that suggest survey activity / rest.
 const LEG_ON_SPEED_MS = 10; // ~36 km/h sustained → offer to start a leg
 const LEG_ON_SUSTAIN_MS = 10_000;
@@ -270,6 +277,12 @@ function AppInner() {
   const altDisp = displayAlt(fix?.altitude ?? null, units);
   const speedTargetDisp = targets ? displaySpeedTarget(targets.speedKmh, units) : null;
   const altTargetDisp = targets ? displayAltTarget(targets.altM, units) : null;
+  const speedTolDisp = targets ? displaySpeedTarget(targets.speedTolKmh, units) : 0;
+  const altTolDisp = targets ? displayAltTarget(targets.altTolM, units) : 0;
+  const speedColor = speedTargetDisp != null ? tolColor(speedDisp, speedTargetDisp, speedTolDisp) : COLORS.muted;
+  const speedArrow = speedTargetDisp != null ? tolArrow(speedDisp, speedTargetDisp, speedTolDisp) : "";
+  const altColor = altTargetDisp != null ? tolColor(altDisp, altTargetDisp, altTolDisp) : COLORS.muted;
+  const altArrow = altTargetDisp != null ? tolArrow(altDisp, altTargetDisp, altTolDisp) : "";
 
   const gpsChip = (() => {
     if (!fix) return { text: "GPS —", color: COLORS.bad };
@@ -319,26 +332,14 @@ function AppInner() {
             </View>
             <View style={styles.readout}>
               <Text style={styles.readoutLabel}>SPD</Text>
-              <Text
-                style={[
-                  styles.readoutValue,
-                  { color: speedTargetDisp != null ? tolColor(speedDisp, speedTargetDisp, displaySpeedTarget(targets!.speedTolKmh, units)) : COLORS.muted },
-                ]}
-              >
-                {speedDisp != null ? speedDisp.toFixed(0) : "--"}
-              </Text>
+              <Text style={[styles.readoutValue, { color: speedColor }]}>{speedDisp != null ? speedDisp.toFixed(0) : "--"}</Text>
+              {speedArrow !== "" && <Text style={[styles.readoutArrow, { color: speedColor }]}>{speedArrow}</Text>}
               <Text style={styles.readoutUnit}>{speedLabel(units)}</Text>
             </View>
             <View style={styles.readout}>
               <Text style={styles.readoutLabel}>ALT</Text>
-              <Text
-                style={[
-                  styles.readoutValue,
-                  { color: altTargetDisp != null ? tolColor(altDisp, altTargetDisp, displayAltTarget(targets!.altTolM, units)) : COLORS.muted },
-                ]}
-              >
-                {altDisp != null ? altDisp.toFixed(0) : "--"}
-              </Text>
+              <Text style={[styles.readoutValue, { color: altColor }]}>{altDisp != null ? altDisp.toFixed(0) : "--"}</Text>
+              {altArrow !== "" && <Text style={[styles.readoutArrow, { color: altColor }]}>{altArrow}</Text>}
               <Text style={styles.readoutUnit}>{altLabel(units)}</Text>
             </View>
             <View style={{ flex: 1 }} />
@@ -497,6 +498,7 @@ const styles = StyleSheet.create({
   readout: { flexDirection: "row", alignItems: "baseline", gap: 6 },
   readoutLabel: { color: COLORS.muted, fontSize: 14, fontWeight: "700" },
   readoutValue: { fontSize: 26, fontWeight: "800", fontVariant: ["tabular-nums"] },
+  readoutArrow: { fontSize: 22, fontWeight: "900" }, // correction direction, coloured like the value
   readoutUnit: { color: COLORS.muted, fontSize: 14 },
   wpCounter: { color: COLORS.text, fontSize: 16, fontWeight: "700" },
   rail: {
