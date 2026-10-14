@@ -66,7 +66,7 @@ This is home base. Everything happens over the map.
 - Pinch and drag work as usual.
 - **Tap a waypoint pin** to reopen and fix that sighting.
 
-### The 2×2 rail (bottom-right corner)
+### The 2×2 rail (top-right corner)
 
 - **Σ TOTALS** — running per-species tallies for a mid-flight sanity check.
 - **☰ REVIEW** — the full waypoint list, edits, missed-observation additions, and exports.
@@ -151,7 +151,7 @@ Each leg records the crew and conditions, and becomes one row in the SurveyCondi
 
 ### Sessions
 
-A survey = a session. It opens when you start the app fresh (or load a past one) and **closes** from REVIEW when you're done. A closed session is read-only — you can still view and export it, but marking and editing are locked off (buttons dim, with an explanation). **Manage past surveys** at the bottom of DATA lets you load, export, or delete previous sessions; the loaded one survives an app restart.
+A survey = a session. It opens when you start the app fresh (or load a past one) and **closes** from the DATA screen (**NEW SURVEY → Close out this survey and start a new one**) when you're done. A closed session is read-only — you can still view and export it, but marking and editing are locked off (buttons dim, with an explanation). **Manage past surveys** at the bottom of DATA lets you load, export, or delete previous sessions; the loaded one survives an app restart.
 
 ---
 
@@ -159,7 +159,7 @@ A survey = a session. It opens when you start the app fresh (or load a past one)
 
 Anything heard on the audio but not marked in flight gets added afterwards, using the same convention as always:
 
-1. **☰ REVIEW** → **+ missed obs**.
+1. **☰ REVIEW** → **+ Add missed observation (9001+)**.
 2. The sheet opens in missed mode: type the **latitude/longitude** for the position (or accept current GPS).
 3. Species, counts, notes as usual; SAVE.
 
@@ -169,7 +169,7 @@ These get waypoint numbers from 9001 upward and draw as **grey pins**. They expo
 
 ## REVIEW (☰)
 
-The full list of waypoints with time, species, count, and flag icons (↻ circled, 📷 photographed, ⌂ captive, ◉ collared, ✓ check, ⧉ dup?, ≠ not dup). Tap any row to edit or delete it. This is also where **+ missed obs** lives, and where you **close the survey** when it's truly done. (Exporting is on the DATA screen — see below.)
+The full list of waypoints with time, species, count, and flag icons (↻ circled, 📷 photographed, ⌂ captive, ◉ collared, ✓ check, ⧉ dup?, ≠ not dup). Tap any row to edit or delete it. This is also where **+ Add missed observation (9001+)** lives. (Exporting and closing the survey are on the DATA screen.)
 
 ## TOTALS (Σ)
 
@@ -196,7 +196,7 @@ From there the files go into the annual data folder and the workbooks per the da
 
 - All times are **MST (UTC−7), fixed, forever** — deliberately unaffected by any future daylight-time changes. Audio/photos stamp civil time, so after any such change they'd read an hour later than the export times; that's known and accepted.
 - **RecruitmentYear** = the calendar year of the previous June (calculated). **ManagementYear** = "R-R+1" (calculated).
-- Species names are lowercase; Unknown is calculated; the QC, Transcriber, Distance, and Movement columns are empty by design.
+- Species names are lowercase; Unknown is calculated; Transcriber reads "Recorded in app"; the QC, Distance, and Movement columns are empty by design.
 - Crew columns fill from the leg covering each waypoint's time; Area comes from the leg's manual entry.
 
 ---

@@ -91,7 +91,7 @@ Baked-in conventions:
 
 - **Times are MST (UTC−7), fixed, forever** — deliberately immune to any future daylight-time change; the known 1-hour skew vs civil-stamped audio/photos post-change is accepted and documented.
 - RecruitmentYear = calendar year of the previous June (Jun–Dec → this year; Jan–May → last year), computed. ManagementYear = "R-R+1", computed.
-- Species lowercase; Unknown derived; Distance/Movement/Transcriber/QC empty by design; crew columns filled from the leg covering the waypoint's time; Area from the leg's manual entry.
+- Species lowercase; Unknown derived; Distance/Movement/QC empty by design; Transcriber = "Recorded in app"; crew columns filled from the leg covering the waypoint's time; Area from the leg's manual entry.
 - Export output paths: OS share sheet, or save-to-device via the system folder picker (works offline).
 
 ## 9. Settings
