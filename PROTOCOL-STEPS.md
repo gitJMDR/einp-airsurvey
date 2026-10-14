@@ -1,6 +1,6 @@
 # Air Survey app — protocol insert
 
-*Steps for insertion into the Aerial Ungulate Monitoring Survey Protocol (field procedure) and the data management protocol (data handling). Written 2026-09-24 against app version 0.1.0. Companion documents: USER-GUIDE.md (full operating detail), REBUILD-SPEC.md (feature specification).*
+*Steps for insertion into the Aerial Ungulate Monitoring Survey Protocol (field procedure) and the data management protocol (data handling). Written 2026-09-24 against app version 0.1.0; updated 2026-09-25 for 0.2.0. Companion documents: USER-GUIDE.md (full operating detail), REBUILD-SPEC.md (feature specification).*
 
 ---
 

@@ -1,6 +1,6 @@
 # Air Survey — Feature Specification for Re-creation
 
-*A complete, implementation-neutral description of what the app does, written so it could be rebuilt with any toolset or model. It covers behaviour and rules only — not design, code structure, or technology choices. Where a feature was explicitly requested by Jonathan (rather than inferred), it is marked **[J]**. Written 2026-09-24 against app version 0.1.0.*
+*A complete, implementation-neutral description of what the app does, written so it could be rebuilt with any toolset or model. It covers behaviour and rules only — not design, code structure, or technology choices. Where a feature was explicitly requested by Jonathan (rather than inferred), it is marked **[J]**. Written 2026-09-24 against app version 0.1.0; updated 2026-09-25 for 0.2.0.*
 
 ---
 

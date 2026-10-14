@@ -1,6 +1,6 @@
 # Air Survey — User Guide
 
-*For the navigator and anyone else using the app on a survey. Written 2026-09-24 against app version 0.1.0. Plain language throughout — no technical background needed.*
+*For the navigator and anyone else using the app on a survey. Written 2026-09-24 against app version 0.1.0; updated 2026-09-25 for 0.2.0. Plain language throughout — no technical background needed.*
 
 ---
 

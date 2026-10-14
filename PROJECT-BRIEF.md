@@ -1,6 +1,6 @@
 # Air Survey App — Master Brief
 
-*Status: awaiting Jonathan's approval. Compiled 2026-09-15 from the reference material, a 6-question interview, Jonathan's follow-up notes (Mark-popover detail, flight metadata fields, preliminary totals, generic deer), and the platform pivot to Android-first.*
+*Status: approved; kept as the original scope record. Later decisions that override it: units default to km/h + metres (knots/feet selectable); Area is a manual per-leg entry; open item 2 (downstream sign-off) is done, since Jonathan is the analyst, and Distance/Movement export empty by design (see HANDOFF.md). Compiled 2026-09-15 from the reference material, a 6-question interview, Jonathan's follow-up notes (Mark-popover detail, flight metadata fields, preliminary totals, generic deer), and the platform pivot to Android-first.*
 
 ## The job
 
